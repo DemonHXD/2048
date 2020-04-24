@@ -106,31 +106,34 @@ bool GameLayer::init() {
 */
 void GameLayer::update(float dt) {
 	if (isInput) {
+		//正向获取数据还是反向
+		bool inverted;
 		switch (dir) {
 		case left:
 		case up:
-			for (int i = 0; i < 4; i++) {
-				getDataForColORRow(map, i);
-				merge(true);
-				reduction(map, i);
-				arrClearr();
-			}
+			inverted = true;
 			break;
 		case down:		
 		case right:
-			for (int i = 0; i < 4; i++) {
-				getDataForColORRow(map, i);
-				merge(false);
-				reduction(map, i);
-				arrClearr();
-			}
+			inverted = false;
 			break;
 		}
+		for (int i = 0; i < ArrSize; i++) {
+			//获取数据
+			getDataForColORRow(map, i);
+			//合并
+			merge(inverted);
+			//还原
+			reduction(map, i);
+			//清空
+			arrClearr();
+		}
+		//创建随机数字
 		randomCreateNum();
-		for (size_t i = 0; i < 4; i++) {
-			for (size_t j = 0; j < 4; j++) {
+		for (size_t i = 0; i < ArrSize; i++) {
+			for (size_t j = 0; j < ArrSize; j++) {
 				number[i][j]->setImage(map[i][j]);
-				number[i][j]->setPosition(Vec2(113 * j + 7, 113 * (4 - i - 1) + 7));
+				number[i][j]->setPosition(Vec2(113 * j + 7, 113 * (ArrSize - i - 1) + 7));
 			}
 		}
 		isInput = false;
@@ -142,11 +145,14 @@ void GameLayer::update(float dt) {
 	初始化棋盘数字
 */
 void GameLayer::initNumber() {
-	for (size_t i = 0; i < 4; i++) {
-		for (size_t j = 0; j < 4; j++) {
+	//开局随机先创建两个数字
+	randomCreateNum();
+	randomCreateNum();
+	for (size_t i = 0; i < ArrSize; i++) {
+		for (size_t j = 0; j < ArrSize; j++) {
 			number[i][j] = Number::create(map[i][j]);
 			number[i][j]->setAnchorPoint(Vec2(0, 0));
-			number[i][j]->setPosition(Vec2(113 * j + 7, 113 * (4 - i - 1) + 7));
+			number[i][j]->setPosition(Vec2(113 * j + 7, 113 * (ArrSize - i - 1) + 7));
 			this->addChild(number[i][j], 1);
 		}
 	}
@@ -156,17 +162,17 @@ void GameLayer::initNumber() {
 /*
 	获取原行或原列数据
 */
-void GameLayer::getDataForColORRow(int arr[][4], int getNum) {
-	for (int i = 0; i < 4; i++) {
+void GameLayer::getDataForColORRow(int arr[][ArrSize], int getNum) {
+	for (int i = 0; i < ArrSize; i++) {
 		switch (dir) {
 		case left:
 			temp[i] = arr[getNum][i];
 			break;
 		case right:
-			temp[i] = arr[getNum][4 - i - 1];
+			temp[i] = arr[getNum][ArrSize - i - 1];
 			break;
 		case down:
-			temp[i] = arr[4 - i - 1][getNum];
+			temp[i] = arr[ArrSize - i - 1][getNum];
 			break;
 		case up:
 			temp[i] = arr[i][getNum];
@@ -195,9 +201,9 @@ void GameLayer::merge(bool inverted) {
 	去0方法
 */
 void GameLayer::removeZero(bool inverted, bool again) {
-	int arr[4]{ 0 };
+	int arr[ArrSize]{ 0 };
 	int j = 0;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < ArrSize; i++) {
 		if (temp[i] != 0) {
 			arr[j++] = temp[i];
 			temp[i] = 0;
@@ -210,7 +216,7 @@ void GameLayer::removeZero(bool inverted, bool again) {
 			if (!again) {
 				temp[i] = arr[i];
 			} else {
-				temp[4 - i - 1] = arr[i];
+				temp[ArrSize - i - 1] = arr[i];
 			}
 		}
 	}
@@ -219,7 +225,7 @@ void GameLayer::removeZero(bool inverted, bool again) {
 /*
 	将一维数组还原至原列或原行
 */
-void GameLayer::reduction(int arr[][4], int reductionNum) {
+void GameLayer::reduction(int arr[][ArrSize], int reductionNum) {
 	for (int i = 0; i < ArrSize; i++) {
 		switch (dir) {
 		case left:
@@ -251,22 +257,24 @@ void GameLayer::setKeyboardEnable(bool enable) {
 	键盘监听
 */
 void GameLayer::onKeyPressed(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event*) {
-	isInput = true;
 	switch (keyCode) {
 	case EventKeyboard::KeyCode::KEY_UP_ARROW:
 		dir = up;
+		isInput = true;
 		break;
-
 	case EventKeyboard::KeyCode::KEY_DOWN_ARROW:
 		dir = down;
+		isInput = true;
 		break;
 
 	case EventKeyboard::KeyCode::KEY_LEFT_ARROW:
 		dir = left;
+		isInput = true;
 		break;
 
 	case EventKeyboard::KeyCode::KEY_RIGHT_ARROW:
 		dir = right;
+		isInput = true;
 		break;
 	}
 }
@@ -284,11 +292,11 @@ void GameLayer::arrClearr() {
 	随机创建数字
 */
 void GameLayer::randomCreateNum() {
-	int x = rand() % 4;
-	int y = rand() % 4;
+	int x = rand() % ArrSize;
+	int y = rand() % ArrSize;
 	while (map[x][y] != 0) {
-		x = rand() % 4;
-		y = rand() % 4;
+		x = rand() % ArrSize;
+		y = rand() % ArrSize;
 	}
-	map[x][y] = rand() % 2 == 0 ? 2 : 4;
+	map[x][y] = rand() % 2 == 0 ? 2 : ArrSize;
 }
