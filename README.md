@@ -1,7 +1,5 @@
 ﻿# 2048
 2048小游戏
 
-<<<<<<< HEAD
-=======
-
->>>>>>> d21a58a15cd51441d4cfc0c9189c172bb1692e7f
+## 游戏截图
+![](https://github.com/DemonHXD/2048/blob/master/image.gif)
